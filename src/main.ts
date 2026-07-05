@@ -1,20 +1,29 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { join } from 'path';
-import { existsSync, mkdirSync } from 'fs';
+import { join, resolve } from 'path';
+import { tmpdir } from 'os';
+import { mkdirSync } from 'fs';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 
 async function bootstrap() {
-  // Ensure storage directories exist at runtime
-  const storagePath = process.env.STORAGE_PATH || './storage';
-  const invoicesDir = join(process.cwd(), storagePath, 'invoices');
-  if (!existsSync(invoicesDir)) {
-    mkdirSync(invoicesDir, { recursive: true });
-  }
+  // Vercel's deployment filesystem is read-only.
+// Temporary generated files must be placed inside /tmp.
+const storagePath = process.env.VERCEL
+  ? join(tmpdir(), 'meri-dukaan-storage')
+  : resolve(process.env.STORAGE_PATH || './storage');
+
+const invoicesDir = join(storagePath, 'invoices');
+
+mkdirSync(invoicesDir, {
+  recursive: true,
+});
+
+console.log(`Storage directory: ${storagePath}`);
+console.log(`Invoice directory: ${invoicesDir}`);
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
@@ -176,10 +185,9 @@ async function bootstrap() {
     res.json(dynamicDocument);
   });
 
-  // Serve static files from storage directory
-  app.useStaticAssets(join(process.cwd(), storagePath), {
-    prefix: '/storage/',
-  });
+  app.useStaticAssets(storagePath, {
+  prefix: '/storage/',
+});
 
   // Global validation pipe
   app.useGlobalPipes(
@@ -201,5 +209,8 @@ async function bootstrap() {
   console.log(`Swagger API Documentation: http://0.0.0.0:${port}/api-docs`);
 }
 
-bootstrap();
+bootstrap().catch((error) => {
+  console.error('Application failed to start:', error);
+  process.exit(1);
+});
 
