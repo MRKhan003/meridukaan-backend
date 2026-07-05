@@ -1,0 +1,2013 @@
+{
+  "info": {
+    "name": "Meri Dukaan Backend API",
+    "description": "Complete API collection for Meri Dukaan POS, Products, User Management, and Admin Analytics endpoints. Includes all endpoints with proper authentication, examples, and descriptions.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "2.8.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "storeId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "invoiceId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "productId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Public APIs",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Health check endpoint for monitoring and container health checks. Returns status and timestamp."
+          }
+        },
+        {
+          "name": "API Information",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": ["{{baseUrl}}"],
+              "path": [""]
+            },
+            "description": "Get API information including version, documentation URL, and all available endpoints."
+          }
+        },
+        {
+          "name": "Get All Stores",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/stores",
+              "host": ["{{baseUrl}}"],
+              "path": ["stores"]
+            },
+            "description": "Get list of all stores. Public endpoint - no authentication required."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.length > 0) {",
+                  "        pm.collectionVariables.set('storeId', jsonData[0].id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Store",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"My New Store\",\n  \"region\": \"Punjab\",\n  \"city\": \"Lahore\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/stores",
+              "host": ["{{baseUrl}}"],
+              "path": ["stores"]
+            },
+            "description": "Create a new store and get store ID. Public endpoint - used during user signup. Pass store name in body, API will assign a store ID. Region and city are optional."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('storeId', jsonData.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('token', jsonData.access_token);",
+                  "    if (jsonData.user.role === 'ADMIN') {",
+                  "        pm.collectionVariables.set('adminToken', jsonData.access_token);",
+                  "    }",
+                  "    pm.collectionVariables.set('userId', jsonData.user.id);",
+                  "    if (jsonData.user.storeId) {",
+                  "        pm.collectionVariables.set('storeId', jsonData.user.storeId);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"sales1@meridukaan.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Authenticate user with email and password"
+          }
+        },
+        {
+          "name": "Login by Phone",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('token', jsonData.access_token);",
+                  "    if (jsonData.user.role === 'ADMIN') {",
+                  "        pm.collectionVariables.set('adminToken', jsonData.access_token);",
+                  "    }",
+                  "    pm.collectionVariables.set('userId', jsonData.user.id);",
+                  "    if (jsonData.user.storeId) {",
+                  "        pm.collectionVariables.set('storeId', jsonData.user.storeId);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+923001234567\",\n  \"password\": \"NewTest@456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login-by-phone",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login-by-phone"]
+            },
+            "description": "Authenticate user with phone number and password (e.g. sales users after password reset)"
+          }
+        },
+        {
+          "name": "Login as Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('adminToken', jsonData.access_token);",
+                  "    pm.collectionVariables.set('token', jsonData.access_token);",
+                  "    pm.collectionVariables.set('userId', jsonData.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@meridukaan.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login as admin user"
+          }
+        },
+        {
+          "name": "Signup",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('token', jsonData.access_token);",
+                  "    pm.collectionVariables.set('userId', jsonData.user.id);",
+                  "    if (jsonData.user.role === 'ADMIN') {",
+                  "        pm.collectionVariables.set('adminToken', jsonData.access_token);",
+                  "    }",
+                  "    if (jsonData.user.storeId) {",
+                  "        pm.collectionVariables.set('storeId', jsonData.user.storeId);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+923001234567\",\n  \"email\": \"newsales@meridukaan.com\",\n  \"password\": \"securePassword123\",\n  \"role\": \"SALES\",\n  \"storeName\": \"My New Store\",\n  \"storeRegion\": \"Punjab\",\n  \"storeCity\": \"Lahore\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/signup",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "signup"]
+            },
+            "description": "Create a new user. **Phone number is primary** (required for SALES); **email is optional**.\n\n**Required:** password, role\n**Primary (SALES):** phoneNumber (E.164)\n**Optional:** email, firstName, lastName\n**Store:** storeName (creates new) or storeId (existing) - required for SALES"
+          }
+        },
+        {
+          "name": "Get Current User Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            },
+            "description": "Get the authenticated user's profile information. Accessible by all authenticated users."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (!pm.collectionVariables.get('userId')) {",
+                  "        pm.collectionVariables.set('userId', jsonData.id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Own Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"phoneNumber\": \"+923001234567\",\n  \"email\": \"updated@meridukaan.com\",\n  \"password\": \"newPassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            },
+            "description": "Update your own profile (phoneNumber primary, email optional). All fields optional. Role and storeId cannot be changed - use PUT /users/:id (ADMIN only)."
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            },
+            "description": "Logout. JWT is stateless; client should remove token from storage. This endpoint is for consistency."
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@meridukaan.com\",\n  \"redirectUrl\": \"http://localhost:3000/reset-password\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/forgot-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "forgot-password"]
+            },
+            "description": "Request a password reset link (generic). If account exists, link is sent."
+          }
+        },
+        {
+          "name": "Forgot Password (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@meridukaan.com\",\n  \"redirectUrl\": \"http://localhost:3000/reset-password\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/admin/forgot-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "admin", "forgot-password"]
+            },
+            "description": "Request a password reset link for admin users only."
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@meridukaan.com\",\n  \"token\": \"<reset-token>\",\n  \"newPassword\": \"NewStrongPassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/reset-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "reset-password"]
+            },
+            "description": "Reset password using email + token."
+          }
+        },
+        {
+          "name": "Forgot Password (Sales, by phone)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+923001234567\",\n  \"redirectUrl\": \"http://localhost:3000/sales/reset-password\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/sales/forgot-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "sales", "forgot-password"]
+            },
+            "description": "Request password reset for sales users by phone number. Returns resetUrl to display or send via SMS."
+          }
+        },
+        {
+          "name": "Reset Password (Sales, by phone)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+923001234567\",\n  \"token\": \"<reset-token>\",\n  \"newPassword\": \"NewStrongPassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/sales/reset-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "sales", "reset-password"]
+            },
+            "description": "Reset password for sales users using phone number + token."
+          }
+        },
+        {
+          "name": "Request reset token after OTP (Sales)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idToken\": \"<firebase-id-token-after-phone-otp>\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/sales/request-reset-token-after-otp",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "sales", "request-reset-token-after-otp"]
+            },
+            "description": "After Firebase phone OTP verify, exchange idToken for token + phoneNumber. Frontend redirects to /sales/reset-password with these in URL."
+          }
+        },
+        {
+          "name": "Reset password with OTP (Sales)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idToken\": \"<firebase-id-token>\",\n  \"newPassword\": \"NewStrongPassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/sales/reset-password-with-otp",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "sales", "reset-password-with-otp"]
+            },
+            "description": "Reset password after phone OTP verification (idToken + newPassword). No reset link."
+          }
+        },
+        {
+          "name": "Login with Firebase",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idToken\": \"<firebase-id-token>\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/firebase",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "firebase"]
+            },
+            "description": "Verify Firebase ID token and issue JWT."
+          }
+        },
+        {
+          "name": "Login with Firebase (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idToken\": \"<firebase-id-token>\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/firebase/admin",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "firebase", "admin"]
+            },
+            "description": "Verify Firebase ID token for admin users and issue JWT."
+          }
+        },
+        {
+          "name": "Sales Login (Phone + Password)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('token', jsonData.access_token);",
+                  "    pm.collectionVariables.set('userId', jsonData.user.id);",
+                  "    if (jsonData.user.storeId) {",
+                  "        pm.collectionVariables.set('storeId', jsonData.user.storeId);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+923001234567\",\n  \"password\": \"NewTest@456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/firebase/sales",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "firebase", "sales"]
+            },
+            "description": "Sales login with phone + password (primary). Use after password reset. Phone number is primary everywhere."
+          }
+        },
+        {
+          "name": "Sales Login (Firebase idToken)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('token', jsonData.access_token);",
+                  "    pm.collectionVariables.set('userId', jsonData.user.id);",
+                  "    if (jsonData.user.storeId) {",
+                  "        pm.collectionVariables.set('storeId', jsonData.user.storeId);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idToken\": \"<firebase-id-token-after-phone-otp>\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/firebase/sales",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "firebase", "sales"]
+            },
+            "description": "Sales login with Firebase idToken (after phone OTP verification). Same endpoint as phone+password - use either idToken OR phoneNumber+password."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Stores",
+      "item": [
+        {
+          "name": "Get All Stores",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/stores",
+              "host": ["{{baseUrl}}"],
+              "path": ["stores"]
+            },
+            "description": "Get list of all stores. Public endpoint - no authentication required."
+          }
+        },
+        {
+          "name": "Create Store",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"My New Store\",\n  \"region\": \"Punjab\",\n  \"city\": \"Lahore\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/stores",
+              "host": ["{{baseUrl}}"],
+              "path": ["stores"]
+            },
+            "description": "Create a new store and get store ID. Public endpoint - used during user signup. Pass store name in body, API will assign a store ID. Region and city are optional."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('storeId', jsonData.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Store",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/stores/:storeId",
+              "host": ["{{baseUrl}}"],
+              "path": ["stores", ":storeId"],
+              "variable": [
+                {
+                  "key": "storeId",
+                  "value": "{{storeId}}"
+                }
+              ]
+            },
+            "description": "Delete a store by ID. ADMIN only. Fails if store has users, inventory, or invoices."
+          }
+        }
+      ]
+    },
+    {
+      "name": "User Management (Admin Only)",
+      "item": [
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newsales@meridukaan.com\",\n  \"password\": \"securePassword123\",\n  \"role\": \"SALES\",\n  \"storeId\": \"{{storeId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            },
+            "description": "Create a new user. Requires ADMIN. Store ID is required for SALES role."
+          }
+        },
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            },
+            "description": "Retrieve a list of all users. Requires ADMIN role."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.length > 0 && !pm.collectionVariables.get('userId')) {",
+                  "        pm.collectionVariables.set('userId', jsonData[0].id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/:userId",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":userId"],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "{{userId}}"
+                }
+              ]
+            },
+            "description": "Retrieve a specific user by their ID. Requires ADMIN role."
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"updated@meridukaan.com\",\n  \"role\": \"SALES\",\n  \"storeId\": \"{{storeId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/:userId",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":userId"],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "{{userId}}"
+                }
+              ]
+            },
+            "description": "Update user information. All fields are optional. Requires ADMIN role. Store ID is required if role is SALES."
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/:userId",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":userId"],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "{{userId}}"
+                }
+              ]
+            },
+            "description": "Delete a user by ID. Requires ADMIN role."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "Get All Products",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["products"]
+            },
+            "description": "Retrieve a list of all products with their category, brand, and manufacturer details. Requires ADMIN, INVENTORY, PURCHASE, or SALES role."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.length > 0 && !pm.collectionVariables.get('productId')) {",
+                  "        pm.collectionVariables.set('productId', jsonData[0].id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Product by SKU",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/sku/COKE-330ML",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", "sku", "COKE-330ML"]
+            },
+            "description": "Retrieve a product by its SKU (barcode). SALES users see only products from their store. ADMIN/INVENTORY/PURCHASE can use storeId query parameter. Requires SALES, ADMIN, INVENTORY, or PURCHASE role."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('productId', jsonData.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Quick Create Product (POS)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('productId', jsonData.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"NEW-PRODUCT-001\",\n  \"name\": \"New Product Name\",\n  \"categoryName\": \"Soft Drinks\",\n  \"brandName\": \"New Brand\",\n  \"manufacturerName\": \"New Manufacturer\",\n  \"unitPrice\": 50.00,\n  \"unitSizeMl\": 500\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/products/quick-create",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", "quick-create"]
+            },
+            "description": "Quickly create a product when barcode doesn't match. Automatically creates category, brand, and manufacturer if they don't exist. Requires SALES or ADMIN role. Use this when scanning an unknown barcode - SKU will be pre-filled from scan error."
+          }
+        },
+        {
+          "name": "Create Product (Full)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('productId', jsonData.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"PRODUCT-001\",\n  \"name\": \"Product Name\",\n  \"categoryId\": \"{{categoryId}}\",\n  \"brandId\": \"{{brandId}}\",\n  \"manufacturerId\": \"{{manufacturerId}}\",\n  \"unitPrice\": 50.00,\n  \"unitSizeMl\": 500\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["products"]
+            },
+            "description": "Create a new product with full details. Requires ADMIN, INVENTORY, or PURCHASE role. All category, brand, and manufacturer IDs must exist. Use GET /admin/filters to get available IDs."
+          }
+        },
+        {
+          "name": "Create Product (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"NEW-SKU-001\",\n  \"name\": \"Product Name\",\n  \"categoryName\": \"Beverages\",\n  \"brandName\": \"New Brand\",\n  \"manufacturerName\": \"New Manufacturer\",\n  \"unitPrice\": 50.00,\n  \"unitSizeMl\": 500,\n  \"stockQuantity\": 10,\n  \"storeId\": \"{{storeId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/products/admin-create",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", "admin-create"]
+            },
+            "description": "Create product with optional new category/brand/manufacturer by name, and optional initial stock. storeId required when stockQuantity > 0."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('productId', jsonData.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Product by ID",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {
+              "raw": "{{baseUrl}}/products/:productId",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", ":productId"],
+              "variable": [{"key": "productId", "value": "{{productId}}"}]
+            },
+            "description": "Get a product by UUID. SALES users can only access products from their store. Requires ADMIN, INVENTORY, PURCHASE, or SALES role."
+          }
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{adminToken}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Product Name\",\n  \"unitPrice\": 55.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/products/:productId",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", ":productId"],
+              "variable": [{"key": "productId", "value": "{{productId}}"}]
+            },
+            "description": "Update product. All body fields optional. INVENTORY/PURCHASE users can only update products from their assigned store. Requires ADMIN, INVENTORY, or PURCHASE role."
+          }
+        },
+        {
+          "name": "Add or Reduce Stock",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{adminToken}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"storeId\": \"{{storeId}}\",\n  \"quantity\": 10\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/products/:productId/stock",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", ":productId", "stock"],
+              "variable": [{"key": "productId", "value": "{{productId}}"}]
+            },
+            "description": "Add (positive quantity) or reduce (negative) stock at a store. Requires ADMIN, INVENTORY, or PURCHASE."
+          }
+        },
+        {
+          "name": "Delete Product",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{adminToken}}"}],
+            "url": {
+              "raw": "{{baseUrl}}/products/:productId",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", ":productId"],
+              "variable": [{"key": "productId", "value": "{{productId}}"}]
+            },
+            "description": "Delete a product. INVENTORY users can only delete products from their assigned store. Fails if product has been used in invoices or does not belong to your store. Requires ADMIN or INVENTORY role."
+          }
+        }
+      ]
+    },
+    {
+      "name": "POS Operations",
+      "item": [
+        {
+          "name": "Scan Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"qrValue\": \"COKE-330ML\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pos/scan",
+              "host": ["{{baseUrl}}"],
+              "path": ["pos", "scan"]
+            },
+            "description": "Scan QR code (SKU) and get product details with available stock. Only qrValue is required in the request body. Store ID is automatically taken from your assigned store (SALES users) or your assigned store (ADMIN users). Use the product.id from the response when creating invoices."
+          },
+          "response": [
+            {
+              "name": "Success - Product Found",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"qrValue\": \"COKE-330ML\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/pos/scan",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["pos", "scan"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"product\": {\n    \"id\": \"42ad2ddc-3bae-4dcb-8950-66c3aa31cf3d\",\n    \"sku\": \"COKE-330ML\",\n    \"name\": \"Coca-Cola 330ml\",\n    \"unitPrice\": \"35.00\",\n    \"unitSizeMl\": 330,\n    \"category\": \"Soft Drinks\",\n    \"brand\": \"Coca-Cola\",\n    \"manufacturer\": \"The Coca-Cola Company\"\n  },\n  \"stockQty\": 100\n}"
+            },
+            {
+              "name": "Error - Product Not Found",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"qrValue\": \"UNKNOWN-123\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/pos/scan",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["pos", "scan"]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 404,\n  \"message\": \"Product with SKU UNKNOWN-123 not found\",\n  \"sku\": \"UNKNOWN-123\",\n  \"suggestion\": \"Use POST /products/quick-create to add this product manually\",\n  \"endpoint\": \"/products/quick-create\"\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('productId', jsonData.product.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Invoice",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('invoiceId', jsonData.invoiceId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "idempotency-key",
+                "value": "unique-key-{{$randomUUID}}",
+                "description": "Optional: Prevents duplicate invoices"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"qty\": 5\n    }\n  ],\n  \"clientInvoiceRef\": \"INV-{{$randomInt}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pos/invoices",
+              "host": ["{{baseUrl}}"],
+              "path": ["pos", "invoices"]
+            },
+            "description": "Create a new invoice with items. Store ID is automatically taken from your assigned store (SALES users) or can be specified (ADMIN users). Worker ID is automatically set to your user ID. For SALES users, storeId is auto-set. For ADMIN users, you can optionally specify storeId in the request body. Use product IDs from POST /pos/scan responses."
+          },
+          "response": [
+            {
+              "name": "Success - Invoice Created",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "idempotency-key",
+                    "value": "unique-key-123"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"qty\": 5\n    }\n  ],\n  \"clientInvoiceRef\": \"INV-2026-001\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/pos/invoices",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["pos", "invoices"]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"invoiceId\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"pdfUrl\": \"/storage/invoices/a1b2c3d4-e5f6-7890-abcd-ef1234567890.pdf\",\n  \"totals\": {\n    \"amount\": \"175.00\",\n    \"items\": 5\n  },\n  \"createdAt\": \"2026-01-19T18:00:00.000Z\"\n}"
+            },
+            {
+              "name": "Error - Product Not Found",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"items\": [\n    {\n      \"productId\": \"invalid-product-id\",\n      \"qty\": 1\n    }\n  ],\n  \"clientInvoiceRef\": \"INV-TEST\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/pos/invoices",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["pos", "invoices"]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 400,\n  \"message\": \"One or more products not found. Missing product IDs: invalid-product-id\"\n}"
+            },
+            {
+              "name": "Error - Insufficient Stock",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"qty\": 1000\n    }\n  ],\n  \"clientInvoiceRef\": \"INV-TEST\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/pos/invoices",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["pos", "invoices"]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"statusCode\": 400,\n  \"message\": \"Insufficient stock for product COKE-330ML. Available: 100, Requested: 1000\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get All Invoices",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {
+              "raw": "{{baseUrl}}/pos/invoices?storeId=&dateFrom=2026-01-01&dateTo=2026-01-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["pos", "invoices"],
+              "query": [
+                {"key": "storeId", "value": "", "disabled": true, "description": "Filter by store ID"},
+                {"key": "dateFrom", "value": "2026-01-01", "description": "From date (YYYY-MM-DD)"},
+                {"key": "dateTo", "value": "2026-01-31", "description": "To date (YYYY-MM-DD)"}
+              ]
+            },
+            "description": "List invoices with optional filters (storeId, dateFrom, dateTo). SALES, ADMIN, INVENTORY."
+          }
+        },
+        {
+          "name": "Get Invoice",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/pos/invoices/:invoiceId",
+              "host": ["{{baseUrl}}"],
+              "path": ["pos", "invoices", ":invoiceId"],
+              "variable": [
+                {
+                  "key": "invoiceId",
+                  "value": "{{invoiceId}}"
+                }
+              ]
+            },
+            "description": "Retrieve full invoice details including all items. Accessible by SALES, ADMIN, and INVENTORY roles."
+          }
+        },
+        {
+          "name": "Get Invoice PDF",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/pos/invoices/:invoiceId/pdf",
+              "host": ["{{baseUrl}}"],
+              "path": ["pos", "invoices", ":invoiceId", "pdf"],
+              "variable": [
+                {
+                  "key": "invoiceId",
+                  "value": "{{invoiceId}}"
+                }
+              ]
+            },
+            "description": "Download invoice PDF file. Accessible by SALES, ADMIN, and INVENTORY roles."
+          }
+        },
+        {
+          "name": "Delete Invoice",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{adminToken}}"}],
+            "url": {
+              "raw": "{{baseUrl}}/pos/invoices/:invoiceId",
+              "host": ["{{baseUrl}}"],
+              "path": ["pos", "invoices", ":invoiceId"],
+              "variable": [{"key": "invoiceId", "value": "{{invoiceId}}"}]
+            },
+            "description": "Delete (void) an invoice and restore stock. ADMIN only."
+          }
+        },
+        {
+          "name": "Get Today's Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/pos/stats/today",
+              "host": ["{{baseUrl}}"],
+              "path": ["pos", "stats", "today"]
+            },
+            "description": "Get real-time sales statistics for today. Shows sales count and total amount for the current user's store and worker. Requires SALES or ADMIN role. User must be assigned to a store."
+          }
+        },
+        {
+          "name": "Get Inventory",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/pos/inventory?storeId=",
+              "host": ["{{baseUrl}}"],
+              "path": ["pos", "inventory"],
+              "query": [
+                {
+                  "key": "storeId",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Store ID (optional for ADMIN, auto-set for SALES)"
+                }
+              ]
+            },
+            "description": "Get inventory data for a specific store. For SALES users, storeId is automatically taken from assigned store. For ADMIN/INVENTORY users, storeId can be specified as query parameter. Requires SALES, ADMIN, or INVENTORY role."
+          }
+        },
+        {
+          "name": "Get Purchases",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/pos/purchases?storeId=",
+              "host": ["{{baseUrl}}"],
+              "path": ["pos", "purchases"],
+              "query": [
+                {
+                  "key": "storeId",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Store ID (optional for ADMIN)"
+                }
+              ]
+            },
+            "description": "Get purchase orders (inventory movements of type IN) for a specific store. For ADMIN users, storeId can be specified as query parameter. For PURCHASE/INVENTORY users, storeId is automatically taken from assigned store. Requires ADMIN, PURCHASE, or INVENTORY role."
+          }
+        },
+        {
+          "name": "Sync Offline Invoices",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"invoices\": [\n    {\n      \"localId\": \"local-uuid-123\",\n      \"items\": [\n        {\n          \"sku\": \"PROD-001\",\n          \"productName\": \"Coca Cola\",\n          \"categoryName\": \"Beverages\",\n          \"brandName\": \"Coca-Cola\",\n          \"manufacturerName\": \"The Coca-Cola Company\",\n          \"qty\": 5,\n          \"unitPrice\": 50.00\n        }\n      ],\n      \"clientInvoiceRef\": \"INV-2026-001\",\n      \"paymentMethod\": \"Cash\",\n      \"createdAt\": \"2026-01-24T10:00:00Z\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pos/invoices/sync",
+              "host": ["{{baseUrl}}"],
+              "path": ["pos", "invoices", "sync"]
+            },
+            "description": "Sync offline invoices created when server was down. Resolves products from names (category, brand, manufacturer) and creates invoices. Products are created automatically if they don't exist. Requires SALES or ADMIN role. Items can use names instead of IDs - categoryName, brandName, manufacturerName are required."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    console.log('Synced:', jsonData.synced);",
+                  "    console.log('Failed:', jsonData.failed);",
+                  "    if (jsonData.synced && jsonData.synced.length > 0) {",
+                  "        pm.collectionVariables.set('invoiceId', jsonData.synced[0].serverId);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Admin Analytics",
+      "item": [
+        {
+          "name": "Get Filters",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/filters",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "filters"]
+            },
+            "description": "Get all available filter options for admin dashboard (stores, regions, cities, brands, categories, manufacturers). Requires ADMIN, INVENTORY, PURCHASE, or SALES role."
+          }
+        },
+        {
+          "name": "Get Categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "categories"]
+            },
+            "description": "Get list of all categories with their IDs. Use these IDs when creating products via POST /products endpoint. Requires ADMIN, INVENTORY, PURCHASE, or SALES role."
+          }
+        },
+        {
+          "name": "Get Brands",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/brands",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "brands"]
+            },
+            "description": "Get list of all brands with their IDs and manufacturer info. Use these IDs when creating products via POST /products endpoint. Requires ADMIN, INVENTORY, PURCHASE, or SALES role."
+          }
+        },
+        {
+          "name": "Get Manufacturers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/manufacturers",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "manufacturers"]
+            },
+            "description": "Get list of all manufacturers with their IDs. Use these IDs when creating products via POST /products endpoint. Requires ADMIN, INVENTORY, PURCHASE, or SALES role."
+          }
+        },
+        {
+          "name": "Get Dashboard Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/summary?storeId=",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "summary"],
+              "query": [
+                {
+                  "key": "storeId",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Filter by store ID (optional)"
+                }
+              ]
+            },
+            "description": "Get comprehensive dashboard summary with all totals in one call: sales (total/today amount/count/items), purchases (total/today amount/count/items), inventory (value/items/low stock count). No need to fetch individual records. Requires ADMIN, SALES, INVENTORY, or PURCHASE role."
+          }
+        },
+        {
+          "name": "Get Analytics Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/analytics/summary?from=2026-01-01&to=2026-01-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "analytics", "summary"],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-01-01",
+                  "description": "Start date (YYYY-MM-DD)"
+                },
+                {
+                  "key": "to",
+                  "value": "2026-01-31",
+                  "description": "End date (YYYY-MM-DD)"
+                },
+                {
+                  "key": "storeId",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Filter by store ID"
+                },
+                {
+                  "key": "region",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Filter by region"
+                },
+                {
+                  "key": "city",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Filter by city"
+                },
+                {
+                  "key": "categoryId",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Filter by category ID"
+                },
+                {
+                  "key": "manufacturerId",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Filter by manufacturer ID"
+                },
+                {
+                  "key": "brandId",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Filter by brand ID"
+                }
+              ]
+            },
+            "description": "Get summary metrics for admin dashboard (total sales, invoices, AOV, distribution, etc.). All query parameters are optional."
+          }
+        },
+        {
+          "name": "Get Sales Trend",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/analytics/sales-trend?from=2026-01-01&to=2026-01-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "analytics", "sales-trend"],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-01-01",
+                  "description": "Start date (YYYY-MM-DD)"
+                },
+                {
+                  "key": "to",
+                  "value": "2026-01-31",
+                  "description": "End date (YYYY-MM-DD)"
+                },
+                {
+                  "key": "storeId",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "region",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "city",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get sales trends over time. All query parameters are optional."
+          }
+        },
+        {
+          "name": "Get Brand Distribution",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/analytics/brand-distribution?from=2026-01-01&to=2026-01-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "analytics", "brand-distribution"],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-01-01",
+                  "description": "Start date (YYYY-MM-DD)"
+                },
+                {
+                  "key": "to",
+                  "value": "2026-01-31",
+                  "description": "End date (YYYY-MM-DD)"
+                },
+                {
+                  "key": "brandId",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Filter by brand ID"
+                },
+                {
+                  "key": "categoryId",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Filter by category ID"
+                },
+                {
+                  "key": "manufacturerId",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Filter by manufacturer ID"
+                }
+              ]
+            },
+            "description": "Get brand performance and distribution metrics. All query parameters are optional."
+          }
+        },
+        {
+          "name": "Get Market Share",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/analytics/market-share?from=2026-01-01&to=2026-01-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "analytics", "market-share"],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-01-01",
+                  "description": "Start date (YYYY-MM-DD)"
+                },
+                {
+                  "key": "to",
+                  "value": "2026-01-31",
+                  "description": "End date (YYYY-MM-DD)"
+                },
+                {
+                  "key": "region",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Filter by region"
+                },
+                {
+                  "key": "city",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Filter by city"
+                },
+                {
+                  "key": "brandId",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Filter by brand ID"
+                }
+              ]
+            },
+            "description": "Get market share analysis. All query parameters are optional."
+          }
+        },
+        {
+          "name": "Get Brands",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/analytics/brands?from=2026-01-01&to=2026-01-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "analytics", "brands"],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-01-01",
+                  "description": "Start date (YYYY-MM-DD)"
+                },
+                {
+                  "key": "to",
+                  "value": "2026-01-31",
+                  "description": "End date (YYYY-MM-DD)"
+                },
+                {
+                  "key": "categoryId",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Filter by category ID"
+                },
+                {
+                  "key": "manufacturerId",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Filter by manufacturer ID"
+                }
+              ]
+            },
+            "description": "Get brand analytics. All query parameters are optional."
+          }
+        },
+        {
+          "name": "Get Top SKUs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/analytics/top-skus?from=2026-01-01&to=2026-01-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "analytics", "top-skus"],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-01-01",
+                  "description": "Start date (YYYY-MM-DD)"
+                },
+                {
+                  "key": "to",
+                  "value": "2026-01-31",
+                  "description": "End date (YYYY-MM-DD)"
+                },
+                {
+                  "key": "storeId",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Filter by store ID"
+                },
+                {
+                  "key": "region",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Filter by region"
+                },
+                {
+                  "key": "city",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Filter by city"
+                }
+              ]
+            },
+            "description": "Get top selling products (SKUs). All query parameters are optional."
+          }
+        }
+      ]
+    }
+  ]
+}

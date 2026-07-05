@@ -1,0 +1,89 @@
+# compiled output
+/dist
+/node_modules
+*.tsbuildinfo
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Tests
+/coverage
+/.nyc_output
+*.lcov
+
+# IDEs and editors
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Environment
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.test
+
+# Prisma
+# Keep migrations folder - it's needed for deployment
+# /prisma/migrations
+
+# Storage
+/storage
+/storage/**
+!storage/.gitkeep
+
+# Docker
+docker-compose.override.yml
+
+# Documentation (markdown files - keep README.md)
+docs/markdown/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Test scripts
+test-all-apis.js
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Markdown documentation folder
+markdown/
+
+# Documentation files (not to be committed, except README.md)
+*.md
+!README.md

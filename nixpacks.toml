@@ -1,0 +1,33 @@
+providers = ["node"]
+
+[phases.setup]
+nixPkgs = ["chromium"]
+cmds = [
+  "sudo apt-get update",
+  "sudo apt-get install -y curl chromium",
+  "curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -",
+  "sudo apt-get install -y nodejs"
+]
+
+[phases.install]
+cmds = [
+  "npm config set fetch-retries 3",
+  "npm config set fetch-retry-mintimeout 20000",
+  "npm config set fetch-retry-maxtimeout 120000",
+  "npm ci --no-audit --no-optional"
+]
+
+[phases.build]
+cmds = [
+  "npm run build",
+  "mkdir -p storage/invoices"
+]
+
+[start]
+cmd = "npx prisma migrate deploy && npx prisma db seed && node dist/src/main.js"
+
+[variables]
+NODE_ENV = "production"
+NIXPACKS_NODE_VERSION = "20"
+PUPPETEER_SKIP_DOWNLOAD = "true"
+PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "true"
