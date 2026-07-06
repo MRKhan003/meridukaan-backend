@@ -4,6 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import * as puppeteer from 'puppeteer';
 import * as fs from 'fs';
 import * as path from 'path';
+import { tmpdir } from 'os';
 import PDFDocument from 'pdfkit';
 
 @Injectable()
@@ -15,15 +16,26 @@ export class PdfService {
     private prisma: PrismaService,
     private configService: ConfigService,
   ) {
-    this.storagePath = this.configService.get<string>('STORAGE_PATH') || './storage';
+    const configuredStoragePath =
+      this.configService.get<string>('STORAGE_PATH');
+
+    this.storagePath = process.env.VERCEL
+      ? path.join(tmpdir(), 'meri-dukaan-storage')
+      : path.resolve(configuredStoragePath || './storage');
+
+    this.logger.log(`PdfService storage path: ${this.storagePath}`);
+
     this.ensureStorageDirectories();
   }
 
   private ensureStorageDirectories() {
     const invoicesDir = path.join(this.storagePath, 'invoices');
-    if (!fs.existsSync(invoicesDir)) {
-      fs.mkdirSync(invoicesDir, { recursive: true });
-    }
+
+    fs.mkdirSync(invoicesDir, {
+      recursive: true,
+    });
+
+    this.logger.log(`PdfService invoices directory: ${invoicesDir}`);
   }
 
   async generateInvoicePdf(invoiceId: string): Promise<string> {
@@ -63,7 +75,7 @@ export class PdfService {
     try {
       // Check for Puppeteer executable path from environment (Railway/Nixpacks)
       const puppeteerExecutablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
-      
+
       // Try to find Chrome/Chromium: macOS (local), Linux (apt chromium / nixpacks)
       const chromePaths = [
         '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
@@ -72,9 +84,9 @@ export class PdfService {
         '/usr/bin/chromium-browser',
         '/snap/bin/chromium',
       ];
-      
+
       let executablePath: string | undefined = puppeteerExecutablePath;
-      
+
       // If not set via env, try to find it locally
       if (!executablePath) {
         for (const chromePath of chromePaths) {
@@ -108,7 +120,7 @@ export class PdfService {
 
       const page = await browser.newPage();
       await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 10000 });
-      
+
       const pdfPath = path.join(this.storagePath, 'invoices', `${invoiceId}.pdf`);
       await page.pdf({
         path: pdfPath,
@@ -123,10 +135,11 @@ export class PdfService {
       });
 
       // Return relative path from project root
-      const relativePath = path.relative(process.cwd(), pdfPath);
-      this.logger.log(`Generated PDF for invoice ${invoiceId} at ${relativePath}`);
-      
-      return relativePath;
+      const publicPath = `/storage/invoices/${invoiceId}.pdf`;
+      this.logger.log(`Generated PDF for invoice ${invoiceId} at ${publicPath}`);
+
+      return publicPath;
+
     } catch (error) {
       this.logger.error(`PDF generation failed for invoice ${invoiceId}:`, error);
       // Try fallback with old headless mode
@@ -145,9 +158,9 @@ export class PdfService {
           format: 'A4',
           printBackground: true,
         });
-        const relativePath = path.relative(process.cwd(), pdfPath);
-        this.logger.log(`Generated PDF (fallback) for invoice ${invoiceId} at ${relativePath}`);
-        return relativePath;
+        const publicPath = `/storage/invoices/${invoiceId}.pdf`;
+        this.logger.log(`Generated PDF (fallback) for invoice ${invoiceId} at ${publicPath}`);
+        return publicPath;
       } catch (fallbackError) {
         this.logger.error(`PDF generation fallback also failed:`, fallbackError);
         try {
@@ -181,7 +194,7 @@ export class PdfService {
     try {
       // Ensure storage directory exists
       this.ensureStorageDirectories();
-      
+
       const invoice = await this.prisma.invoice.findUnique({
         where: { id: invoiceId },
         include: {
@@ -219,8 +232,8 @@ export class PdfService {
       }
 
       const pdfPath = path.join(invoicesDir, `${invoiceId}.pdf`);
-      const relativePath = path.relative(process.cwd(), pdfPath);
-      
+      const publicPath = `/storage/invoices/${invoiceId}.pdf`;
+
       // Remove existing PDF if it exists (to avoid conflicts)
       if (fs.existsSync(pdfPath)) {
         try {
@@ -236,67 +249,67 @@ export class PdfService {
         try {
           const doc = new PDFDocument({ margin: 50 });
           const stream = fs.createWriteStream(pdfPath);
-          
+
           // Handle stream errors
           stream.on('error', (err) => {
             this.logger.error(`[PDFKit] Stream error for invoice ${invoiceId}:`, err);
             reject(new Error(`Failed to write PDF file: ${err.message}`));
           });
-          
+
           // Handle doc errors
           doc.on('error', (err) => {
             this.logger.error(`[PDFKit] Document error for invoice ${invoiceId}:`, err);
             reject(new Error(`Failed to generate PDF: ${err.message}`));
           });
-          
+
           stream.on('finish', () => {
             // Verify file was created
             if (fs.existsSync(pdfPath)) {
-              this.logger.log(`[PDFKit] PDF created successfully at ${relativePath}`);
-              resolve(relativePath);
+              this.logger.log(`[PDFKit] PDF created successfully at ${publicPath}`);
+              resolve(publicPath);
             } else {
               reject(new Error('PDF file was not created'));
             }
           });
-          
+
           doc.pipe(stream);
 
-      doc.fontSize(20).text('INVOICE', { continued: false });
-      doc.fontSize(10).text(`Invoice #${invoice.id.substring(0, 8).toUpperCase()}`, { continued: false });
-      doc.moveDown();
+          doc.fontSize(20).text('INVOICE', { continued: false });
+          doc.fontSize(10).text(`Invoice #${invoice.id.substring(0, 8).toUpperCase()}`, { continued: false });
+          doc.moveDown();
 
-      doc.fontSize(11).text(`Store: ${invoice.store.name}`, { continued: false });
-      doc.text(`${invoice.store.city}, ${invoice.store.region}`, { continued: false });
-      doc.text(`Date: ${new Date(invoice.createdAt).toLocaleDateString()}`, { continued: false });
-      doc.text(`Time: ${new Date(invoice.createdAt).toLocaleTimeString()}`, { continued: false });
-      if (invoice.clientInvoiceRef) {
-        doc.text(`Reference: ${invoice.clientInvoiceRef}`, { continued: false });
-      }
-      doc.moveDown();
+          doc.fontSize(11).text(`Store: ${invoice.store.name}`, { continued: false });
+          doc.text(`${invoice.store.city}, ${invoice.store.region}`, { continued: false });
+          doc.text(`Date: ${new Date(invoice.createdAt).toLocaleDateString()}`, { continued: false });
+          doc.text(`Time: ${new Date(invoice.createdAt).toLocaleTimeString()}`, { continued: false });
+          if (invoice.clientInvoiceRef) {
+            doc.text(`Reference: ${invoice.clientInvoiceRef}`, { continued: false });
+          }
+          doc.moveDown();
 
-      const headerY = doc.y;
-      doc.fontSize(10).text('SKU', 50, headerY, { width: 80 });
-      doc.text('Product', 130, headerY, { width: 180 });
-      doc.text('Qty', 310, headerY, { width: 40 });
-      doc.text('Price', 350, headerY, { width: 70 });
-      doc.text('Total', 420, headerY, { width: 80 });
-      doc.moveDown(0.5);
-      const tableTop = doc.y;
+          const headerY = doc.y;
+          doc.fontSize(10).text('SKU', 50, headerY, { width: 80 });
+          doc.text('Product', 130, headerY, { width: 180 });
+          doc.text('Qty', 310, headerY, { width: 40 });
+          doc.text('Price', 350, headerY, { width: 70 });
+          doc.text('Total', 420, headerY, { width: 80 });
+          doc.moveDown(0.5);
+          const tableTop = doc.y;
 
-      for (const item of invoice.items) {
-        doc.y = tableTop + (invoice.items.indexOf(item) * 18);
-        doc.fontSize(9).text(str(item.product?.sku ?? ''), 50, doc.y, { width: 80 });
-        doc.text(str(item.product?.name ?? '').substring(0, 28), 130, doc.y, { width: 180 });
-        doc.text(str(item.qty), 310, doc.y, { width: 40 });
-        doc.text(`Rs. ${str(item.unitPrice)}`, 350, doc.y, { width: 70 });
-        doc.text(`Rs. ${str(item.lineTotal)}`, 420, doc.y, { width: 80 });
-      }
+          for (const item of invoice.items) {
+            doc.y = tableTop + (invoice.items.indexOf(item) * 18);
+            doc.fontSize(9).text(str(item.product?.sku ?? ''), 50, doc.y, { width: 80 });
+            doc.text(str(item.product?.name ?? '').substring(0, 28), 130, doc.y, { width: 180 });
+            doc.text(str(item.qty), 310, doc.y, { width: 40 });
+            doc.text(`Rs. ${str(item.unitPrice)}`, 350, doc.y, { width: 70 });
+            doc.text(`Rs. ${str(item.lineTotal)}`, 420, doc.y, { width: 80 });
+          }
 
-      doc.y = tableTop + invoice.items.length * 18 + 15;
-      doc.fontSize(10).text(`Total Items: ${invoice.totalItems}`, 50, doc.y, { continued: false });
-      doc.fontSize(12).text(`Total Amount: Rs. ${str(invoice.totalAmount)}`, 50, doc.y + 5, { continued: false });
-      doc.moveDown();
-      doc.fontSize(9).text(`Thank you for your business! Generated on ${new Date().toLocaleString()}`, 50, doc.y, { continued: false });
+          doc.y = tableTop + invoice.items.length * 18 + 15;
+          doc.fontSize(10).text(`Total Items: ${invoice.totalItems}`, 50, doc.y, { continued: false });
+          doc.fontSize(12).text(`Total Amount: Rs. ${str(invoice.totalAmount)}`, 50, doc.y + 5, { continued: false });
+          doc.moveDown();
+          doc.fontSize(9).text(`Thank you for your business! Generated on ${new Date().toLocaleString()}`, 50, doc.y, { continued: false });
 
           doc.end();
         } catch (err: any) {

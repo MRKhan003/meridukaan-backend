@@ -8,22 +8,18 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
-
+import {
+  initializeStorage,
+  invoicesPath,
+  storagePath,
+} from './common/config/storage.config';
 async function bootstrap() {
   // Vercel's deployment filesystem is read-only.
-// Temporary generated files must be placed inside /tmp.
-const storagePath = process.env.VERCEL
-  ? join(tmpdir(), 'meri-dukaan-storage')
-  : resolve(process.env.STORAGE_PATH || './storage');
+  // Temporary generated files must be placed inside /tmp.
+  initializeStorage();
 
-const invoicesDir = join(storagePath, 'invoices');
-
-mkdirSync(invoicesDir, {
-  recursive: true,
-});
-
-console.log(`Storage directory: ${storagePath}`);
-console.log(`Invoice directory: ${invoicesDir}`);
+  console.log(`Storage directory: ${storagePath}`);
+  console.log(`Invoice directory: ${invoicesPath}`);
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
@@ -91,7 +87,7 @@ console.log(`Invoice directory: ${invoicesDir}`);
   // Enable CORS with environment variable support
   const corsOrigin = process.env.CORS_ORIGIN || '*';
   const corsEnabled = process.env.CORS_ENABLED !== 'false';
-  
+
   if (corsEnabled) {
     app.enableCors({
       origin: corsOrigin === '*' ? true : corsOrigin.split(',').map(o => o.trim()),
@@ -130,7 +126,7 @@ console.log(`Invoice directory: ${invoicesDir}`);
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  
+
   SwaggerModule.setup('api-docs', app, document, {
     swaggerOptions: {
       persistAuthorization: true, // Keep token after page refresh
@@ -140,7 +136,7 @@ console.log(`Invoice directory: ${invoicesDir}`);
     customSiteTitle: 'Meri Dukaan API Docs',
     customCss: '.swagger-ui .topbar { display: none }',
   });
-  
+
   // Override the Swagger JSON endpoint to dynamically set server URL based on request
   // This ensures Swagger UI always uses the correct URL (production or local)
   // This must be registered AFTER SwaggerModule.setup() to take precedence
@@ -154,40 +150,40 @@ console.log(`Invoice directory: ${invoicesDir}`);
     } else if (req.secure || req.connection?.encrypted) {
       protocol = 'https';
     }
-    
+
     // Get host from request headers (handles production domains correctly)
     const host = req.headers.host || `localhost:${port}`;
     const baseUrl = `${protocol}://${host}`;
-    
+
     // Determine if we're running locally
     // Check if host is localhost, 127.0.0.1, or a local IP (not a production domain)
-    const isLocalhost = 
-      host.includes('localhost') || 
-      host.includes('127.0.0.1') || 
+    const isLocalhost =
+      host.includes('localhost') ||
+      host.includes('127.0.0.1') ||
       host.startsWith('0.0.0.0') ||
       /^192\.168\.|^10\.|^172\.(1[6-9]|2[0-9]|3[01])\./.test(host.split(':')[0]); // Private IP ranges
-    
+
     // Build servers array - always put current server first (this is what Swagger UI will use)
     const servers = [{ url: baseUrl, description: 'Current server' }];
-    
+
     // Only add localhost server option if we're actually running locally
     // This prevents showing localhost:8080 or localhost:3001 in production Swagger UI dropdown
     if (isLocalhost) {
       servers.push({ url: `http://localhost:${port}`, description: 'Local development (alternative)' });
     }
-    
+
     // Clone document and update servers dynamically
     const dynamicDocument = {
       ...document,
       servers: servers,
     };
-    
+
     res.json(dynamicDocument);
   });
 
   app.useStaticAssets(storagePath, {
-  prefix: '/storage/',
-});
+    prefix: '/storage/',
+  });
 
   // Global validation pipe
   app.useGlobalPipes(
